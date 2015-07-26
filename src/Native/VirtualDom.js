@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
@@ -21,7 +21,7 @@ if (typeof document !== 'undefined') {
     module.exports = doccy;
 }
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"min-document":24}],3:[function(require,module,exports){
 "use strict";
 
@@ -1261,6 +1261,23 @@ Elm.Native.VirtualDom.make = function(elm)
 		});
 	}
 
+  function widget(fn, st)
+  {
+      return {
+          type: "Widget",
+          init: function() {
+              return createElement(fn(this.st));
+          },
+          st: st,
+          update: function(prev, dom) {
+              if(prev.st != this.st) {
+                  return this.init();
+              }
+          },
+          destroy: function() {}
+      };
+  }
+
 	function makeNode(name, propertyList, contents)
 	{
 		var props = listToProperties(propertyList);
@@ -1506,6 +1523,8 @@ Elm.Native.VirtualDom.make = function(elm)
 		lazy2: F3(lazyRef2),
 		lazy3: F4(lazyRef3),
 
+		widget: F2(widget),
+
 		toElement: F3(toElement),
 		fromElement: fromElement,
 
@@ -1517,3 +1536,4 @@ Elm.Native.VirtualDom.make = function(elm)
 },{"virtual-dom/create-element":1,"virtual-dom/vdom/patch":9,"virtual-dom/vnode/is-vhook":13,"virtual-dom/vnode/vnode":18,"virtual-dom/vnode/vtext":20,"virtual-dom/vtree/diff":22}],24:[function(require,module,exports){
 
 },{}]},{},[23]);
+;

@@ -51,6 +51,23 @@ Elm.Native.VirtualDom.make = function(elm)
 		});
 	}
 
+  function widget(fn, st)
+  {
+      return {
+          type: "Widget",
+          init: function() {
+              return createElement(fn(this.st));
+          },
+          st: st,
+          update: function(prev, dom) {
+              if(prev.st != this.st) {
+                  return this.init();
+              }
+          },
+          destroy: function() {}
+      };
+  }
+
 	function makeNode(name, propertyList, contents)
 	{
 		var props = listToProperties(propertyList);
@@ -295,6 +312,8 @@ Elm.Native.VirtualDom.make = function(elm)
 		lazy: F2(lazyRef),
 		lazy2: F3(lazyRef2),
 		lazy3: F4(lazyRef3),
+
+		widget: F2(widget),
 
 		toElement: F3(toElement),
 		fromElement: fromElement,

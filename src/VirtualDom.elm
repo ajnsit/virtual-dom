@@ -4,7 +4,7 @@ module VirtualDom
     , toElement, fromElement
     , Property, property, attribute
     , on, onWithOptions, Options, defaultOptions
-    , lazy, lazy2, lazy3
+    , lazy, lazy2, lazy3, widget
     ) where
 
 {-| API to the core diffing algorithm. Can serve as a foundation for libraries
@@ -221,3 +221,10 @@ lazy2 =
 lazy3 : (a -> b -> c -> Node) -> a -> b -> c -> Node
 lazy3 =
     Native.VirtualDom.lazy3
+
+
+{-| Create a widget, which acts as a leaf for DOM diffing
+ -}
+widget : (a -> Node) -> a -> Node
+widget =
+    Native.VirtualDom.widget

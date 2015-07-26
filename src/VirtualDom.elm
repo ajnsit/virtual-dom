@@ -11,7 +11,7 @@ module VirtualDom
 that expose more helper functions for HTML or SVG.
 
 # Create
-@docs Node, text, node
+@docs Node, text, node, widget
 
 # Declare Properties and Attributes
 @docs Property, property, attribute

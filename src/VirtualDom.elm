@@ -225,6 +225,6 @@ lazy3 =
 
 {-| Create a widget, which acts as a leaf for DOM diffing
  -}
-widget : (a -> Node) -> a -> Node
+widget : (a -> Node) -> (a -> a -> Bool) -> a -> Node
 widget =
     Native.VirtualDom.widget

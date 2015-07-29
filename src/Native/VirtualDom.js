@@ -1,9 +1,9 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":6}],2:[function(require,module,exports){
+},{"./vdom/create-element.js":7}],2:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -21,8 +21,8 @@ if (typeof document !== 'undefined') {
     module.exports = doccy;
 }
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"min-document":24}],3:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"min-document":25}],3:[function(require,module,exports){
 "use strict";
 
 module.exports = function isObject(x) {
@@ -40,8 +40,25 @@ function isArray(obj) {
 }
 
 },{}],5:[function(require,module,exports){
+// Perform dom manipulation through Polymer.dom if available
+
+var Dom;
+
+if(Polymer && typeof Polymer.dom === 'function') {
+    // Bind to Polymer.dom
+    Dom = Polymer.dom.bind(Polymer);
+} else {
+    // Identity function
+    Dom = function(x) {return x;};
+}
+
+module.exports = Dom;
+
+},{}],6:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
+
+var Dom = require("../polymer-dom.js")
 
 module.exports = applyProperties
 
@@ -75,7 +92,7 @@ function removeProperty(node, propName, propValue, previous) {
         if (!isHook(previousValue)) {
             if (propName === "attributes") {
                 for (var attrName in previousValue) {
-                    node.removeAttribute(attrName)
+                    Dom(node).removeAttribute(attrName)
                 }
             } else if (propName === "style") {
                 for (var i in previousValue) {
@@ -101,9 +118,9 @@ function patchObject(node, props, previous, propName, propValue) {
             var attrValue = propValue[attrName]
 
             if (attrValue === undefined) {
-                node.removeAttribute(attrName)
+                Dom(node).removeAttribute(attrName)
             } else {
-                node.setAttribute(attrName, attrValue)
+                Dom(node).setAttribute(attrName, attrValue)
             }
         }
 
@@ -138,7 +155,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":13,"is-object":3}],6:[function(require,module,exports){
+},{"../polymer-dom.js":5,"../vnode/is-vhook.js":14,"is-object":3}],7:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -147,6 +164,8 @@ var isVNode = require("../vnode/is-vnode.js")
 var isVText = require("../vnode/is-vtext.js")
 var isWidget = require("../vnode/is-widget.js")
 var handleThunk = require("../vnode/handle-thunk.js")
+
+var Dom = require("../polymer-dom.js")
 
 module.exports = createElement
 
@@ -179,19 +198,21 @@ function createElement(vnode, opts) {
     for (var i = 0; i < children.length; i++) {
         var childNode = createElement(children[i], opts)
         if (childNode) {
-            node.appendChild(childNode)
+            Dom(node).appendChild(childNode)
         }
     }
 
     return node
 }
 
-},{"../vnode/handle-thunk.js":11,"../vnode/is-vnode.js":14,"../vnode/is-vtext.js":15,"../vnode/is-widget.js":16,"./apply-properties":5,"global/document":2}],7:[function(require,module,exports){
+},{"../polymer-dom.js":5,"../vnode/handle-thunk.js":12,"../vnode/is-vnode.js":15,"../vnode/is-vtext.js":16,"../vnode/is-widget.js":17,"./apply-properties":6,"global/document":2}],8:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
 // We only recurse into a DOM node if we know that it contains a child of
 // interest.
+
+var Dom = require("../polymer-dom.js")
 
 var noChild = {}
 
@@ -219,7 +240,7 @@ function recurse(rootNode, tree, indices, nodes, rootIndex) {
 
         if (vChildren) {
 
-            var childNodes = rootNode.childNodes
+            var childNodes = Dom(rootNode).childNodes
 
             for (var i = 0; i < tree.children.length; i++) {
                 rootIndex += 1
@@ -273,14 +294,15 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],8:[function(require,module,exports){
+},{"../polymer-dom.js":5}],9:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
 var VPatch = require("../vnode/vpatch.js")
 
-var render = require("./create-element")
 var updateWidget = require("./update-widget")
+
+var Dom = require("../polymer-dom.js")
 
 module.exports = applyPatch
 
@@ -315,10 +337,10 @@ function applyPatch(vpatch, domNode, renderOptions) {
 }
 
 function removeNode(domNode, vNode) {
-    var parentNode = domNode.parentNode
+    var parentNode = Dom(domNode).parentNode
 
     if (parentNode) {
-        parentNode.removeChild(domNode)
+        Dom(parentNode).removeChild(domNode)
     }
 
     destroyWidget(domNode, vNode);
@@ -327,10 +349,10 @@ function removeNode(domNode, vNode) {
 }
 
 function insertNode(parentNode, vNode, renderOptions) {
-    var newNode = render(vNode, renderOptions)
+    var newNode = renderOptions.render(vNode, renderOptions)
 
     if (parentNode) {
-        parentNode.appendChild(newNode)
+        Dom(parentNode).appendChild(newNode)
     }
 
     return parentNode
@@ -343,8 +365,8 @@ function stringPatch(domNode, leftVNode, vText, renderOptions) {
         domNode.replaceData(0, domNode.length, vText.text)
         newNode = domNode
     } else {
-        var parentNode = domNode.parentNode
-        newNode = render(vText, renderOptions)
+        var parentNode = Dom(domNode).parentNode
+        newNode = renderOptions.render(vText, renderOptions)
 
         if (parentNode && newNode !== domNode) {
             parentNode.replaceChild(newNode, domNode)
@@ -361,10 +383,10 @@ function widgetPatch(domNode, leftVNode, widget, renderOptions) {
     if (updating) {
         newNode = widget.update(leftVNode, domNode) || domNode
     } else {
-        newNode = render(widget, renderOptions)
+        newNode = renderOptions.render(widget, renderOptions)
     }
 
-    var parentNode = domNode.parentNode
+    var parentNode = Dom(domNode).parentNode
 
     if (parentNode && newNode !== domNode) {
         parentNode.replaceChild(newNode, domNode)
@@ -378,8 +400,8 @@ function widgetPatch(domNode, leftVNode, widget, renderOptions) {
 }
 
 function vNodePatch(domNode, leftVNode, vNode, renderOptions) {
-    var parentNode = domNode.parentNode
-    var newNode = render(vNode, renderOptions)
+    var parentNode = Dom(domNode).parentNode
+    var newNode = renderOptions.render(vNode, renderOptions)
 
     if (parentNode && newNode !== domNode) {
         parentNode.replaceChild(newNode, domNode)
@@ -395,7 +417,7 @@ function destroyWidget(domNode, w) {
 }
 
 function reorderChildren(domNode, moves) {
-    var childNodes = domNode.childNodes
+    var childNodes = Dom(domNode).childNodes
     var keyMap = {}
     var node
     var remove
@@ -407,7 +429,7 @@ function reorderChildren(domNode, moves) {
         if (remove.key) {
             keyMap[remove.key] = node
         }
-        domNode.removeChild(node)
+        Dom(domNode).removeChild(node)
     }
 
     var length = childNodes.length
@@ -415,28 +437,33 @@ function reorderChildren(domNode, moves) {
         insert = moves.inserts[j]
         node = keyMap[insert.key]
         // this is the weirdest bug i've ever seen in webkit
-        domNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
+        Dom(domNode).insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
     }
 }
 
 function replaceRoot(oldRoot, newRoot) {
-    if (oldRoot && newRoot && oldRoot !== newRoot && oldRoot.parentNode) {
-        oldRoot.parentNode.replaceChild(newRoot, oldRoot)
+    if (oldRoot && newRoot && oldRoot !== newRoot && Dom(oldRoot).parentNode) {
+        Dom(oldRoot).parentNode.replaceChild(newRoot, oldRoot)
     }
 
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":16,"../vnode/vpatch.js":19,"./apply-properties":5,"./create-element":6,"./update-widget":10}],9:[function(require,module,exports){
+},{"../polymer-dom.js":5,"../vnode/is-widget.js":17,"../vnode/vpatch.js":20,"./apply-properties":6,"./update-widget":11}],10:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
+var render = require("./create-element")
 var domIndex = require("./dom-index")
 var patchOp = require("./patch-op")
 module.exports = patch
 
-function patch(rootNode, patches) {
-    return patchRecursive(rootNode, patches)
+function patch(rootNode, patches, renderOptions) {
+    renderOptions = renderOptions || {}
+    renderOptions.patch = renderOptions.patch || patchRecursive
+    renderOptions.render = renderOptions.render || render
+
+    return renderOptions.patch(rootNode, patches, renderOptions)
 }
 
 function patchRecursive(rootNode, patches, renderOptions) {
@@ -449,11 +476,8 @@ function patchRecursive(rootNode, patches, renderOptions) {
     var index = domIndex(rootNode, patches.a, indices)
     var ownerDocument = rootNode.ownerDocument
 
-    if (!renderOptions) {
-        renderOptions = { patch: patchRecursive }
-        if (ownerDocument !== document) {
-            renderOptions.document = ownerDocument
-        }
+    if (!renderOptions.document && ownerDocument !== document) {
+        renderOptions.document = ownerDocument
     }
 
     for (var i = 0; i < indices.length; i++) {
@@ -505,7 +529,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./dom-index":7,"./patch-op":8,"global/document":2,"x-is-array":4}],10:[function(require,module,exports){
+},{"./create-element":7,"./dom-index":8,"./patch-op":9,"global/document":2,"x-is-array":4}],11:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -522,7 +546,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":16}],11:[function(require,module,exports){
+},{"../vnode/is-widget.js":17}],12:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -564,14 +588,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":12,"./is-vnode":14,"./is-vtext":15,"./is-widget":16}],12:[function(require,module,exports){
+},{"./is-thunk":13,"./is-vnode":15,"./is-vtext":16,"./is-widget":17}],13:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -580,7 +604,7 @@ function isHook(hook) {
        typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
 }
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -589,7 +613,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":17}],15:[function(require,module,exports){
+},{"./version":18}],16:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -598,17 +622,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":17}],16:[function(require,module,exports){
+},{"./version":18}],17:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = "2"
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -682,7 +706,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":12,"./is-vhook":13,"./is-vnode":14,"./is-widget":16,"./version":17}],19:[function(require,module,exports){
+},{"./is-thunk":13,"./is-vhook":14,"./is-vnode":15,"./is-widget":17,"./version":18}],20:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -706,7 +730,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":17}],20:[function(require,module,exports){
+},{"./version":18}],21:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -718,7 +742,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":17}],21:[function(require,module,exports){
+},{"./version":18}],22:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook")
 
@@ -778,7 +802,7 @@ function getPrototype(value) {
   }
 }
 
-},{"../vnode/is-vhook":13,"is-object":3}],22:[function(require,module,exports){
+},{"../vnode/is-vhook":14,"is-object":3}],23:[function(require,module,exports){
 var isArray = require("x-is-array")
 
 var VPatch = require("../vnode/vpatch")
@@ -1189,7 +1213,7 @@ function keyIndex(children) {
 
     return {
         keys: keys,     // A hash of key name to index
-        free: free,     // An array of unkeyed item indices
+        free: free      // An array of unkeyed item indices
     }
 }
 
@@ -1207,7 +1231,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":11,"../vnode/is-thunk":12,"../vnode/is-vnode":14,"../vnode/is-vtext":15,"../vnode/is-widget":16,"../vnode/vpatch":19,"./diff-props":21,"x-is-array":4}],23:[function(require,module,exports){
+},{"../vnode/handle-thunk":12,"../vnode/is-thunk":13,"../vnode/is-vnode":15,"../vnode/is-vtext":16,"../vnode/is-widget":17,"../vnode/vpatch":20,"./diff-props":22,"x-is-array":4}],24:[function(require,module,exports){
 var VNode = require('virtual-dom/vnode/vnode');
 var VText = require('virtual-dom/vnode/vtext');
 var diff = require('virtual-dom/vtree/diff');
@@ -1514,6 +1538,7 @@ Elm.Native.VirtualDom.make = function(elm)
 	};
 };
 
-},{"virtual-dom/create-element":1,"virtual-dom/vdom/patch":9,"virtual-dom/vnode/is-vhook":13,"virtual-dom/vnode/vnode":18,"virtual-dom/vnode/vtext":20,"virtual-dom/vtree/diff":22}],24:[function(require,module,exports){
+},{"virtual-dom/create-element":1,"virtual-dom/vdom/patch":10,"virtual-dom/vnode/is-vhook":14,"virtual-dom/vnode/vnode":19,"virtual-dom/vnode/vtext":21,"virtual-dom/vtree/diff":23}],25:[function(require,module,exports){
 
-},{}]},{},[23]);
+},{}]},{},[24]);
+;

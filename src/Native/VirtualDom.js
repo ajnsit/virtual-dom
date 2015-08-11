@@ -1264,21 +1264,32 @@ Elm.Native.VirtualDom.make = function(elm)
 		});
 	}
 
+  // WIDGETS
+  function Widget(fn, changed, st)
+  {
+      this.fn = fn;
+      this.changed = changed;
+      this.st = st;
+  }
+  Widget.prototype.type = "Widget";
+  Widget.prototype.init = function()
+  {
+      return createElement(this.fn(this.st));
+  };
+  Widget.prototype.update = function() {
+      if(changed(prev.st)(this.st))
+      {
+          return this.init();
+      }
+      return null;
+  };
+  Widget.prototype.destroy = function()
+  {
+  };
+
   function widget(fn, changed, st)
   {
-      return {
-          type: "Widget",
-          init: function() {
-              return createElement(fn(this.st));
-          },
-          st: st,
-          update: function(prev, dom) {
-              if(changed(prev.st)(this.st)) {
-                  return this.init();
-              }
-          },
-          destroy: function() {}
-      };
+      return new Widget(fn, changed, st);
   }
 
 	function makeNode(name, propertyList, contents)

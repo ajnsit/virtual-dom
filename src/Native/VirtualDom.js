@@ -1261,7 +1261,7 @@ Elm.Native.VirtualDom.make = function(elm)
 		});
 	}
 
-  function widget(fn, st)
+  function widget(fn, changed, st)
   {
       return {
           type: "Widget",
@@ -1270,7 +1270,7 @@ Elm.Native.VirtualDom.make = function(elm)
           },
           st: st,
           update: function(prev, dom) {
-              if(prev.st != this.st) {
+              if(changed(prev.st)(this.st)) {
                   return this.init();
               }
           },
@@ -1523,7 +1523,7 @@ Elm.Native.VirtualDom.make = function(elm)
 		lazy2: F3(lazyRef2),
 		lazy3: F4(lazyRef3),
 
-		widget: F2(widget),
+		widget: F3(widget),
 
 		toElement: F3(toElement),
 		fromElement: fromElement,
